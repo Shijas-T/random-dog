@@ -4,8 +4,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -37,6 +39,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+                //Show a progress Dialog
+                final ProgressDialog pDialog = new ProgressDialog(MainActivity.this);
+                pDialog.setMessage("Loading...");
+                pDialog.show();
+
                 RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
                 JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, "https://random.dog/woof.json", null, new Response.Listener<JSONObject>() {
                     @Override
@@ -57,11 +64,23 @@ public class MainActivity extends AppCompatActivity {
                         catch (JSONException e) {
                             e.printStackTrace();
                         }
+                        pDialog.dismiss();
                     }
                 }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Toast.makeText(MainActivity.this, "Fail to get data..", Toast.LENGTH_SHORT).show();
+
+                        // hide the progress dialog
+                        pDialog.hide();
+                        pDialog.setMessage("Check your internet connection!");
+                        pDialog.show();
+                        Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            public void run() {
+                                pDialog.dismiss();
+                            }
+                        }, 5000);
                     }
                 });
                 queue.add(jsonObjectRequest);
